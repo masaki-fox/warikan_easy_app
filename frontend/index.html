@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <title>わりかんeasy</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+
+    <div class="container">
+      <h3>金額とメンバー</h3>
+      <div>
+        <label for="total_money">合計金額</label>
+        <input type="number" id="total_money" placeholder="金額を入力">
+      </div>
+      <div>
+        <!-- Upcoming feature
+         <label for="members">メンバー</label>
+          <input type="button" id="members" value="add_members">
+        -->
+        <div id="member-list">
+          <label for="members">メンバー</label>
+          <label for="members">aさん</label>
+          <label for="members">bさん</label>
+        </div>
+        
+      </div>
+
+      <h3>個別の会計</h3>
+      <div>
+        <label for="amount">金額：</label>
+        <input type="number" id="amount" placeholder="金額を入力">
+          <div>
+            <input type="radio" name="tax" value="tax_inclusive" id="inclusive"/>
+            <label for="inclusive">税込</label>
+            <input type="radio" name="tax" value="tax_exclusive" id="exclusive" checked/>
+            <label for="exclusive">税抜</label>
+            <label> + 税率：</label>
+            <select id="tax_rate">
+              <option value="0.08">8%</option>
+              <option value="0.10">10%</option>
+            </select>
+          </div>
+          <label>所有者：</label>
+          <select id="owner">
+            <option value="member1">Aさん</option>
+            <option value="member2">Bさん</option>
+          </select>
+          <button id="register-btn">登録</button>
+          <div id="result-area" style="
+            height:300px;
+            overflow-y:auto;
+            border:1px solid #ccc;">
+          </div>
+      </div>
+      <h3>集計</h3>
+      <div class="border p-3 mb-3">
+        <div>
+          <h4>Aさん</h4>
+          <div>個人支払い：
+            <span id="a-personal">0</span> 円 割り勘分　：
+            <span id="a-split">0</span> 円</div>
+            <strong>合計：<span id="a-total">0</span> 円</strong>
+          </div>
+
+          <hr>
+
+          <h4>Bさん</h4>
+          <div>個人支払い：
+            <span id="b-personal">0</span> 円 割り勘分　：
+            <span id="b-split">0</span> 円</div>
+            <strong>合計：<span id="b-total">0</span> 円</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+      <script defer>
+        // feature about tax_rate controll
+        const inclusive = document.getElementById("inclusive");
+        const exclusive = document.getElementById("exclusive");
+        const tax_rate_select = document.getElementById("tax_rate");
+
+        inclusive.addEventListener("click", () =>{
+          console.log("税込みが選ばれた");
+          tax_rate_select.setAttribute("disabled", "true");
+        });
+        exclusive.addEventListener("click", () =>{
+          console.log("税抜きが選ばれた");
+          tax_rate_select.removeAttribute("disabled");;
+        });
+        
+        // register form value to record
+        const registerBtn = document.getElementById("register-btn");
+        const resultArea = document.getElementById("result-area");
+        let records = []; // stores records for calc
+
+        registerBtn.addEventListener("click", () => {
+
+          const amount = document.getElementById("amount").value;
+          const taxType = document.querySelector('input[name="tax"]:checked').value;
+          const taxRate = document.getElementById("tax_rate").value;
+          const owner = document.getElementById("owner").value;
+
+          // 税込計算（簡易版）
+          let finalAmount = amount;
+
+          if (taxType === "tax_exclusive") {
+            finalAmount = Math.round(amount * (1 + parseFloat(taxRate)));
+          }
+          // store record
+          records.push({
+            owner: owner,
+            amount: finalAmount
+          });
+          // レコード用div作成
+          const record = document.createElement("div");
+          record.style.borderBottom = "1px solid #eee";
+          record.style.padding = "4px 0";
+
+          record.textContent =
+            `所有者: ${owner} | 合計: ${finalAmount}円`;
+
+          resultArea.appendChild(record);
+          resultArea.scrollTop = resultArea.scrollHeight; // auto scroll topdown
+          updateTotals();
+        });
+
+        // calc warikan
+        function updateTotals() {
+          let totalA = 0;
+          let totalB = 0;
+
+          records.forEach(record => {
+            if (record.owner === "member1") {
+              totalA += Number(record.amount);
+            }
+            if (record.owner === "member2") {
+              totalB += Number(record.amount);
+            }
+          });
+          const totalMoney = parseFloat(
+              Number(document.getElementById("total_money").value)
+            ) || 0;
+
+          let total = totalMoney - totalA - totalB
+          const split = Math.round(total / 2);
+
+          document.getElementById("a-personal").textContent = totalA;
+          document.getElementById("b-personal").textContent = totalB;
+
+          document.getElementById("a-split").textContent = split;
+          document.getElementById("b-split").textContent = split;
+
+          document.getElementById("a-total").textContent = totalA + split;
+          document.getElementById("b-total").textContent = totalB + split;
+        }
+      
+        // when enter tatal maney, update warikan
+        const total_money = document.getElementById("total_money");
+        total_money.addEventListener("input", updateTotals);
+      </script>
+  </body>
+</html>
