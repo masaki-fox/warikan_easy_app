@@ -11,4 +11,6 @@ pub fn greet(name: &str) {
 }
 
 #[wasm_bindgen]
-pub fn 
+pub fn multiply(a: f64, b: f64) -> f64 {
+    a * b
+}
